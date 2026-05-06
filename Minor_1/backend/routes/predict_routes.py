@@ -4,9 +4,9 @@ import io
 import os
 import pandas as pd
 
-from ml.features.predict_day import predict_day
-from ml.features.routine_engine import get_task_recommendation
-from ml.features.activity_suggestion import get_activity_suggestions
+from backend.ml.features.predict_day import predict_day
+from backend.ml.features.routine_engine import get_task_recommendation
+from backend.ml.features.activity_suggestion import get_activity_suggestions
 from backend.config import DATA_DIR
 
 predict_bp = Blueprint("predict", __name__)
@@ -98,26 +98,26 @@ def focus():
     if not result or "task" not in result:
         return {"error": "Could not generate recommendation"}, 500
 
-    # 🔥 STEP 3: 🔥 NEW → TASK RANKING LOGIC
+        # 🔥 STEP 3: TASK RANKING LOGIC
     ranked_tasks = []
 
     for t in tasks:
-        base = prod
+        base = prod * 10   # convert roughly to 0–100 scale
 
-        # difficulty
+        # difficulty impact
         if t["type"] == "deep":
             base -= 15
         elif t["type"] == "light":
             base += 10
 
-        # duration
+        # duration impact
         if t["duration"] > 90:
             base -= 10
 
-        # mood
-        if mood == "focused":
+        # mood influence
+        if mood >= 7:
             base += 10
-        elif mood == "tired":
+        elif mood <= 4:
             base -= 15
 
         # priority boost
@@ -134,9 +134,13 @@ def focus():
         })
 
     # 🔥 sort tasks (best first)
-    ranked_tasks = sorted(ranked_tasks, key=lambda x: x["score"], reverse=True)
+    ranked_tasks = sorted(
+        ranked_tasks,
+        key=lambda x: x["score"],
+        reverse=True
+    )
 
-    # 🔥 STEP 4: Best task (top ranked)
+    # 🔥 STEP 4: Best task
     best_task_data = ranked_tasks[0]
     best_task_name = best_task_data["task"]
 
@@ -144,6 +148,7 @@ def focus():
     task = next((t for t in tasks if t["task"] == best_task_name), None)
 
     if task:
+
         success_prob = best_task_data["score"]
 
         # burnout logic
@@ -155,10 +160,11 @@ def focus():
         if task["duration"] > 90:
             risk += 20
 
-        if prod < 40:
+        if prod < 4:
             risk += 30
 
-        if row["stress_index"] > 70:
+        # assuming stress_index is 0–1 scale
+        if row["stress_index"] > 0.7:
             risk += 20
 
         if risk > 60:
@@ -171,11 +177,12 @@ def focus():
         result["success_probability"] = success_prob
         result["burnout_risk"] = burnout
         result["confidence"] = success_prob
+
     else:
         result["success_probability"] = None
         result["burnout_risk"] = None
         result["confidence"] = None
-
+        
     # 🔥 STEP 5: Inject new features
     result["task_order"] = ranked_tasks   # 👈 IMPORTANT
     result["insight"] = insight

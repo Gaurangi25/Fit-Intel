@@ -4,7 +4,7 @@ import os
 from datetime import datetime
 from backend.config import DATA_DIR
 from backend.services.token_service import get_token
-from ml.features.hr_live import get_intraday_hr, get_intraday_hr_response
+from backend.ml.features.hr_live import get_intraday_hr, get_intraday_hr_response
 hr_bp = Blueprint("hr", __name__)
 
 def _clean_date(date):

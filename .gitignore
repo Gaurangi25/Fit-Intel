@@ -1,89 +1,116 @@
-# ========================
+# ==========================================
 # Python
-# ========================
+# ==========================================
 __pycache__/
-*.pyc
-*.pyo
-*.pyd
+*.py[cod]
+*$py.class
 
-# ========================
+# Virtual environments
+venv/
+venv310/
+.env/
+.python-version
+
+# ==========================================
+# Environment Variables / Secrets
+# ==========================================
+.env
+.env.*
+*.env
+
+# Tokens / Secrets
+token.txt
+**/token.txt
+
+# ==========================================
 # Node / React
-# ========================
+# ==========================================
 node_modules/
-Minor_1/node_modules/
-Minor_1/frontend/node_modules/
-Minor_1/frontend1/node_modules/
-
-# ========================
-# Build / Production
-# ========================
-build/
-dist/
-
-# ========================
-# Jupyter
-# ========================
-.ipynb_checkpoints/
-
-# ========================
-# OS files
-# ========================
-.DS_Store
-Thumbs.db
-
-# ========================
-# Logs
-# ========================
-*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# ========================
-# Environment / Secrets
-# ========================
-.env
-.env.*
+# React build
+build/
+dist/
 
-# ========================
-# ML / Model Files
-# ========================
+# ==========================================
+# Logs
+# ==========================================
+*.log
+
+# ==========================================
+# VS Code / IDE
+# ==========================================
+.vscode/
+.idea/
+
+# ==========================================
+# OS Files
+# ==========================================
+.DS_Store
+Thumbs.db
+
+# ==========================================
+# Jupyter
+# ==========================================
+.ipynb_checkpoints/
+
+# ==========================================
+# ML Model Files
+# ==========================================
 *.pkl
-Minor_1/ml/models/catboost_info/
-Minor_2/catboost_info/
+*.joblib
 
-# ========================
-# Images (ignore all)
-# ========================
+# CatBoost generated files
+catboost_info/
+
+# ==========================================
+# Generated Runtime Files
+# ==========================================
+movie_cache.json
+user_profile.json
+
+**/movie_cache.json
+**/user_profile.json
+
+# ==========================================
+# Large Dataset Files
+# ==========================================
+*.csv
+
+# Keep important datasets
+!backend/ml/data/daily_data.csv
+!backend/ml/data/hourly_data.csv
+!backend/ml/data/evaluation_results.csv
+
+# ==========================================
+# Images
+# ==========================================
 *.png
 *.jpg
 *.jpeg
 
-# BUT KEEP GRAPHS
-!Minor_1/ml/features/hr_graph/
-!Minor_1/ml/features/hr_graph/*.png
+# Keep generated graphs
+!backend/static/graphs/
+!backend/static/graphs/*.png
 
-# ========================
-# Large Data Files
-# ========================
-*.csv
-
-# BUT KEEP IMPORTANT DATASETS
-!Minor_1/ml/data/daily_data.csv
-!Minor_1/ml/data/hourly_data.csv
-!Minor_1/ml/data/evaluation_results.csv
-!Minor_2/final_dataset.csv
-
-# ========================
-# Misc
-# ========================
+# ==========================================
+# Testing / Coverage
+# ==========================================
 coverage/
-.vscode/
-venv/
-venv310/
+.pytest_cache/
 
-# token
-**/token.txt
+# ==========================================
+# Frontend Build Artifacts
+# ==========================================
+frontend/build/
 
-**/movie_cache.json
-**/user_profile.json
+# ==========================================
+# Temporary Files
+# ==========================================
+*.tmp
+*.temp
+
+*.sqlite3
+*.db

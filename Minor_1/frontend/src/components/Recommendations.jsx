@@ -1,56 +1,114 @@
 import { useEffect, useState } from "react";
 import { getMovies, getActivities } from "../api/api";
 import styles from "./Recommendations.module.css";
+import Card from "./Card";
+
+const posterUrl = (path) => {
+  if (!path) {
+    return "";
+  }
+
+  return `https://image.tmdb.org/t/p/w342${path}`;
+};
 
 function Recommendations() {
   const [movies, setMovies] = useState([]);
   const [activities, setActivities] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
-      const movieData = await getMovies();
-      const activityData = await getActivities();
+      setLoading(true);
+      const [movieData, activityData] = await Promise.all([
+        getMovies(),
+        getActivities(),
+      ]);
 
       setMovies(movieData?.movies || []);
       setActivities(activityData?.suggestions || []);
+      setLoading(false);
     };
 
     fetchData();
   }, []);
 
   return (
-    <div className={styles.container}>
-      <h2>Recommendations</h2>
+    <div className={styles.wrapper}>
+      <section className={styles.header}>
+        <p className={styles.kicker}>Personalized picks</p>
+        <h1>Recommendations</h1>
+        <p>Content and activity ideas generated from the latest health snapshot.</p>
+      </section>
 
-      {/* Movies */}
-      <div className={styles.section}>
-        <h3>Movies</h3>
-        {movies.length > 0 ? (
-          movies.map((m, i) => (
-            <div key={i} className={styles.card}>
-              <strong>{m.title}</strong>
-              {m.release_date && <p>Year: {m.release_date}</p>}
-              {m.vote_average && <p>⭐ {m.vote_average}</p>}
-            </div>
-          ))
-        ) : (
-          <p>No movies available</p>
-        )}
-      </div>
+      {loading ? (
+        <div className={styles.state}>Loading recommendations...</div>
+      ) : (
+        <div className={styles.columns}>
+          <Card>
+            <div className={styles.section}>
+              <div className={styles.sectionHeader}>
+                <h2>Movies</h2>
+                <span>{movies.length} picks</span>
+              </div>
 
-      {/* Activities */}
-      <div className={styles.section}>
-        <h3>Activity Suggestions</h3>
-        {activities.length > 0 ? (
-          activities.map((a, i) => (
-            <div key={i} className={styles.card}>
-              {a}
+              {movies.length > 0 ? (
+                <div className={styles.grid}>
+                  {movies.slice(0, 4).map((movie, index) => (
+                    <article key={`${movie.title}-${index}`} className={styles.movieCard}>
+                      <div className={styles.posterShell}>
+                        {posterUrl(movie.poster_path) ? (
+                          <img
+                            src={posterUrl(movie.poster_path)}
+                            alt={`${movie.title} poster`}
+                            loading="lazy"
+                          />
+                        ) : (
+                          <div className={styles.posterFallback}>
+                            <span>FitIntel Pick</span>
+                          </div>
+                        )}
+                        <span className={styles.rank}>0{index + 1}</span>
+                      </div>
+
+                      <div className={styles.movieInfo}>
+                        <strong>{movie.title}</strong>
+                        <div className={styles.metaRow}>
+                          <span>{movie.release_date || "N/A"}</span>
+                          <span>{movie.vote_average ? `${movie.vote_average}/10` : "No rating"}</span>
+                        </div>
+                      </div>
+                    </article>
+                  ))}
+                </div>
+              ) : (
+                <p className={styles.empty}>No movies available</p>
+              )}
             </div>
-          ))
-        ) : (
-          <p>No suggestions available</p>
-        )}
-      </div>
+          </Card>
+
+          <Card>
+            <div className={styles.section}>
+              <div className={styles.sectionHeader}>
+                <h2>Activity Plan</h2>
+                <span>{activities.length} tips</span>
+              </div>
+
+              {activities.length > 0 ? (
+                <div className={styles.activities}>
+                  {activities.slice(0, 4).map((activity, index) => (
+                    <div key={index} className={styles.activityCard}>
+                      <span>{index + 1}</span>
+                      <p>{activity}</p>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className={styles.empty}>No suggestions available</p>
+              )}
+            </div>
+          </Card>
+        </div>
+      )}
     </div>
   );
 }

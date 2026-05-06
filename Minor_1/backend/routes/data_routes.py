@@ -4,12 +4,12 @@ import os
 from datetime import datetime
 from backend.config import DATA_DIR
 from backend.services.token_service import get_token
-from ml.features.activity_suggestion import get_activity_suggestions
-from ml.features.alerts import get_alerts
-from ml.features.recommender.engine import recommend_movies
 
-from ml.features.predict_day import predict_day
-from ml.repair_day import repair_day
+from backend.ml.features.activity_suggestion import get_activity_suggestions
+from backend.ml.features.alerts import get_alerts
+from backend.ml.features.recommender.engine import recommend_movies
+from backend.ml.features.predict_day import predict_day
+from backend.ml.repair_day import repair_day
 
 
 data_bp = Blueprint("data", __name__)
@@ -34,17 +34,20 @@ def _get_daily_row(date=None):
 
 @data_bp.route("/rate")
 def rate():
-    mood = float(request.args.get("mood"))
-    productivity = float(request.args.get("productivity"))
+
+    mood = request.args.get("mood")
+    productivity = request.args.get("productivity")
     date = request.args.get("date")
 
-    if not mood or not productivity:
+    if mood is None or productivity is None:
         return {"error": "Provide mood and productivity"}, 400
 
-    if not date:
-        from datetime import datetime
-        date = datetime.now().strftime("%Y-%m-%d")
+    mood = float(mood)
+    productivity = float(productivity)
 
+    if not date:
+        date = datetime.now().strftime("%Y-%m-%d")
+        
     df = pd.read_csv(os.path.join(DATA_DIR, "daily_data.csv"))
 
     if date not in df["date"].values:
@@ -56,7 +59,7 @@ def rate():
     df.to_csv(os.path.join(DATA_DIR, "daily_data.csv"), index=False)
 
     return {"status": "Saved"}
-
+        
 @data_bp.route("/sync-day", methods=["GET","POST"])
 def sync_day():
     date = _clean_date(request.args.get("date"))
@@ -127,26 +130,26 @@ def movies():
         
 @data_bp.route("/movies/refresh")
 def refresh_movies():
-    from ml.features.recommender.cache import clear_cache
+    from backend.ml.features.recommender.cache import clear_cache    
     clear_cache()
     return {"status": "cache cleared"}
 
 @data_bp.route("/movies/like", methods=["POST"])
 def like_movie():
-    from ml.features.recommender.profile import like_movie
+    from backend.ml.features.recommender.profile import like_movie
     title = request.json.get("title")
     like_movie(title)
     return {"status": "liked"}
 
 @data_bp.route("/movies/dislike", methods=["POST"])
 def dislike_movie():
-    from ml.features.recommender.profile import dislike_movie
+    from backend.ml.features.recommender.profile import dislike_movie
     title = request.json.get("title")
     dislike_movie(title)
     return {"status": "disliked"}
 
 @data_bp.route("/movies/profile")
 def get_profile():
-    from ml.features.recommender.profile import load_profile
+    from backend.ml.features.recommender.profile import load_profile
     profile = load_profile()
     return profile

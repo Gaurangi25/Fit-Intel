@@ -1,21 +1,42 @@
 import styles from "./Layout.module.css";
+import { Link, useLocation } from "react-router-dom";
+
+const navItems = [
+  { to: "/", label: "Dashboard" },
+  { to: "/activity", label: "Activity" },
+  { to: "/focus", label: "Focus Engine" },
+  { to: "/movies", label: "Movies" },
+  { to: "/alerts", label: "Alerts" },
+  { to: "/about", label: "About" },
+];
 
 function Layout({ children }) {
+  const location = useLocation();
+
   return (
     <div className={styles.wrapper}>
-      <div className={styles.sidebar}>
-        <h2 className={styles.logo}>Fitbit</h2>
+      <header className={styles.navbar}>
+        <Link to="/" className={styles.logo}>
+          <span className={styles.logoMark}>F</span>
+          <span>FitIntel</span>
+        </Link>
 
-        <div className={styles.menu}>
-          <p>Dashboard</p>
-          <p>Recommendations</p>
-          <p>Alerts</p>
-        </div>
-      </div>
+        <nav className={styles.navLinks}>
+          {navItems.map((item) => (
+            <Link
+              key={item.to}
+              to={item.to}
+              className={location.pathname === item.to ? styles.active : ""}
+            >
+              {item.label}
+            </Link>
+          ))}
+        </nav>
+      </header>
 
-      <div className={styles.main}>
-        {children}
-      </div>
+      <main className={styles.main}>
+        <div className={styles.content}>{children}</div>
+      </main>
     </div>
   );
 }

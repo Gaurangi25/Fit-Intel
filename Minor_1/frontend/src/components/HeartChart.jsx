@@ -4,18 +4,29 @@ import {
   CategoryScale,
   LinearScale,
   PointElement,
+  Tooltip,
+  Filler,
 } from "chart.js";
 
 import { Line } from "react-chartjs-2";
 
-ChartJS.register(LineElement, CategoryScale, LinearScale, PointElement);
+ChartJS.register(LineElement, CategoryScale, LinearScale, PointElement, Tooltip, Filler);
+
+const getHourLabel = (hour) => {
+  const suffix = hour >= 12 ? "PM" : "AM";
+  const displayHour = hour % 12 || 12;
+  return `${displayHour}:00 ${suffix}`;
+};
 
 function HeartChart({ data }) {
   if (!data || data.length === 0) {
-    return <p>No heart rate data available</p>;
+    return (
+      <p style={{ opacity: 0.7, fontStyle: "italic" }}>
+        No heart rate data available
+      </p>
+    );
   }
 
-  // Fill missing hours (0–23)
   const fullData = Array.from({ length: 24 }, (_, i) => {
     const found = data.find((d) => d.hour === i);
     return { hour: i, hr: found ? found.hr : null };
@@ -25,54 +36,58 @@ function HeartChart({ data }) {
     labels: fullData.map((d) => d.hour),
     datasets: [
       {
-        label: "Heart Rate (BPM)",
+        label: "Heart Rate",
         data: fullData.map((d) => d.hr),
         borderWidth: 2,
-        tension: 0.4, // smooth curve
-        spanGaps: true, // connect missing points
-        fill: false,
-
-        borderColor: "#5fa077",        
-        backgroundColor: "#22c55e",
+        tension: 0.35,
+        spanGaps: true,
+        fill: true,
+        borderColor: "#22d3ee",
+        backgroundColor: "rgba(34, 211, 238, 0.12)",
         pointRadius: 2,
-        pointBackgroundColor: "#77be91",
+        pointHoverRadius: 5,
+        pointHitRadius: 12,
+        pointBackgroundColor: "#67e8f9",
       },
     ],
   };
 
   const options = {
     responsive: true,
-    maintainAspectRatio: false, 
+    maintainAspectRatio: false,
     plugins: {
-      legend: {
-        labels: {
-          color: "white",
+      legend: { display: false },
+      tooltip: {
+        backgroundColor: "rgba(15, 23, 42, 0.95)",
+        borderColor: "rgba(148, 163, 184, 0.2)",
+        borderWidth: 1,
+        displayColors: false,
+        callbacks: {
+          title: (items) => {
+            const hour = items[0]?.label;
+            return `Around ${getHourLabel(Number(hour))}`;
+          },
+          label: (context) => `Average heart rate: ${context.parsed.y} bpm`,
+          afterLabel: () => "This point shows the average HR recorded during that hour.",
         },
       },
     },
     scales: {
       x: {
-        ticks: { color: "white" },
+        ticks: { color: "#94a3b8" },
+        grid: { color: "rgba(148, 163, 184, 0.08)" },
       },
       y: {
-        ticks: { color: "white" },
+        ticks: { color: "#94a3b8" },
         min: 40,
         max: 160,
+        grid: { color: "rgba(148, 163, 184, 0.08)" },
       },
     },
   };
 
   return (
-    <div
-      style={{
-        marginTop: "30px",
-        background: "#0f172a",
-        padding: "20px",
-        borderRadius: "16px",
-        height: "350px",
-      }}
-    >
-      <h2 style={{ color: "white" }}>Heart Rate (Latest Data)</h2>
+    <div style={{ height: "320px" }}>
       <Line data={chartData} options={options} />
     </div>
   );

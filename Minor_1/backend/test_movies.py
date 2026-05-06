@@ -5,7 +5,7 @@ import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 # now imports will work
-from ml.features.recommender.engine import recommend_movies
+from backend.ml.features.recommender.engine import recommend_movies
 import pandas as pd
 
 # path
