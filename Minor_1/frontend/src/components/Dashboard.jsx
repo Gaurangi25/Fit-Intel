@@ -5,6 +5,18 @@ import HeartChartDetailed from "./HeartChartDetailed";
 import styles from "./Dashboard.module.css";
 import Card from "./Card";
 
+const LOCAL_HOSTS = new Set(["localhost", "127.0.0.1", "::1"]);
+const FITBIT_SYNC_LOCAL_ONLY_MESSAGE =
+  "Live Fitbit sync is available only in local development mode.";
+
+const isLocalDevelopment = () => {
+  if (process.env.NODE_ENV !== "development" || typeof window === "undefined") {
+    return false;
+  }
+
+  return LOCAL_HOSTS.has(window.location.hostname);
+};
+
 const formatValue = (value, suffix = "") => {
   if (value === undefined || value === null || value === "") {
     return "--";
@@ -111,6 +123,7 @@ const MetricIcon = ({ name, className }) => {
 };
 
 function Dashboard() {
+  const canSyncFitbit = isLocalDevelopment();
   const [data, setData] = useState(null);
   const [hrData, setHrData] = useState([]);
   const [hrMinute, setHrMinute] = useState([]);
@@ -131,6 +144,11 @@ function Dashboard() {
     setSyncError("");
 
     if (shouldSync) {
+      if (!canSyncFitbit) {
+        setSyncError(FITBIT_SYNC_LOCAL_ONLY_MESSAGE);
+        return;
+      }
+
       setSyncing(true);
       const syncResult = await syncDay(selectedDate);
       setSyncing(false);
@@ -159,7 +177,7 @@ function Dashboard() {
     const minute = await getHRMinute(selectedDate);
     setHrMinute(minute);
     setDetailLoading(false);
-  }, [selectedDate]);
+  }, [canSyncFitbit, selectedDate]);
 
   useEffect(() => {
     fetchData();
@@ -176,13 +194,17 @@ function Dashboard() {
         />
       </label>
 
-      <button
-        className={styles.button}
-        onClick={() => fetchData(true)}
-        disabled={syncing}
-      >
-        {syncing ? "Syncing..." : "Refresh Data"}
-      </button>
+      {canSyncFitbit ? (
+        <button
+          className={styles.button}
+          onClick={() => fetchData(true)}
+          disabled={syncing}
+        >
+          {syncing ? "Syncing..." : "Refresh Data"}
+        </button>
+      ) : (
+        <div className={styles.infoPanel}>{FITBIT_SYNC_LOCAL_ONLY_MESSAGE}</div>
+      )}
     </div>
   );
 

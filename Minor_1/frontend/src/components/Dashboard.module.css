@@ -198,6 +198,7 @@
 
 .statusBar,
 .errorPanel,
+.infoPanel,
 .statePanel {
   display: flex;
   align-items: center;
@@ -218,6 +219,16 @@
   border-color: rgba(248, 113, 113, 0.35);
   background: rgba(127, 29, 29, 0.28);
   color: #fecaca;
+}
+
+.infoPanel {
+  max-width: 300px;
+  border-color: rgba(103, 232, 249, 0.28);
+  background: rgba(6, 182, 212, 0.12);
+  color: #cffafe;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.45;
 }
 
 .liveIndicator,
@@ -629,6 +640,7 @@
 
   .dateControl,
   .dateControl input,
+  .infoPanel,
   .button {
     width: 100%;
   }
