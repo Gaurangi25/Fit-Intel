@@ -1,4 +1,4 @@
-const BASE_URL = "http://127.0.0.1:5000";
+const BASE_URL = process.env.REACT_APP_API_URL;
 const REQUEST_TIMEOUT = 12000;
 const MOVIE_REQUEST_TIMEOUT = 30000;
 
