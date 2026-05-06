@@ -24,21 +24,21 @@ def recommend_movies(row):
     # 🔥 Cache (based only on mood+prod)
     cached = get_today_cache(genres)
     if cached:
-        print("✅ Using cached recommendations")
+        print("Using cached recommendations")
         return cached
 
     # 🎬 Fetch large pool
     pool = fetch_movie_pool(genres)
 
     if not pool:
-        print("⚠️ No movies fetched, using fallback")
+        print("No movies fetched, using fallback")
         return [
             {"title": "Inception", "vote_average": 8.8},
             {"title": "Interstellar", "vote_average": 8.6},
             {"title": "The Dark Knight", "vote_average": 9.0},
         ]
 
-    print(f"📦 Pool size: {len(pool)}")
+    print(f"Pool size: {len(pool)}")
 
     # 🎯 Rank movies
     ranked = rank_movies(pool, mood, prod)
@@ -46,7 +46,7 @@ def recommend_movies(row):
     # Return a broad set so the UI has enough Hindi and famous English picks.
     final = ranked[:30]
 
-    print("🔥 Returning top:", len(final))
+    print("Returning top:", len(final))
 
     # 🎯 Save history
     for m in final:
@@ -67,6 +67,6 @@ if __name__ == "__main__":
 
     movies = recommend_movies(row)
 
-    print("\n🎬 Debug Output:\n")
+    print("\nDebug Output:\n")
     for m in movies:
         print(m.get("title"))

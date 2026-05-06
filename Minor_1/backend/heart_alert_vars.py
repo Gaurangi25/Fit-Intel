@@ -6,7 +6,7 @@ SELF_EMAIL = "riya.chhavi.gaurangi@gmail.com"
 EMERGENCY_EMAIL = "riyaaryan1001@gmail.com"
 
 LOW_BPM = 50
-HIGH_BPM = 120
+HIGH_BPM = 100
 ESCALATION_MINUTES = 1
 
 EMAIL_PROVIDER = "sendgrid"

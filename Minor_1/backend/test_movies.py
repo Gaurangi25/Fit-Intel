@@ -20,7 +20,7 @@ else:
 
     movies = recommend_movies(row)
 
-    print("\n🎬 Recommended Movies:\n")
+    print("\nRecommended Movies:\n")
 
     for i, m in enumerate(movies, 1):
-        print(f"{i}. {m['title']} ⭐ {m.get('vote_average', 'N/A')}")
+        print(f"{i}. {m['title']} - {m.get('vote_average', 'N/A')}")

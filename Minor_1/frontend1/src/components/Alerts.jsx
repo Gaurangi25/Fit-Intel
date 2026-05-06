@@ -106,7 +106,7 @@ function Alerts() {
   const [heartState, setHeartState] = useState({
     heartRate: null,
     lowBpm: 50,
-    highBpm: 120,
+    highBpm: 100,
     escalationMinutes: 3,
   });
   const [pendingAlert, setPendingAlert] = useState(null);

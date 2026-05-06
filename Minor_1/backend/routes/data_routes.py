@@ -108,13 +108,13 @@ def movies():
     if row is None:
         return {"movies": []}
 
-    print("👉 /movies API called")
+    print("/movies API called")
 
     try:
         movies_list = recommend_movies(row)
 
-        print("🔥 FINAL MOVIES LIST:", movies_list)
-        print("🔥 COUNT:", len(movies_list))
+        print("FINAL MOVIES LIST:", movies_list)
+        print("COUNT:", len(movies_list))
 
         return {
             "movies": movies_list

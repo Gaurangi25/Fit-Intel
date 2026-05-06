@@ -3,14 +3,14 @@ from ml.models.train_model import (
     y_train_mood, y_test_mood,
     y_train_prod, y_test_prod,
     feature_names,
-    w_train   # ✅ added (same as LightGBM)
+    w_train
 )
 
-from sklearn.model_selection import RepeatedKFold, cross_val_score  # ✅ updated CV
+from sklearn.model_selection import RepeatedKFold, cross_val_score
 from sklearn.metrics import r2_score, mean_squared_error, mean_absolute_error
 from sklearn.linear_model import Ridge
 
-from catboost import CatBoostRegressor
+from lightgbm import LGBMRegressor   # ✅ CHANGED
 
 import json
 from datetime import datetime
@@ -20,36 +20,27 @@ import numpy as np
 
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
 # =======================
-# 🔥 Model Config
+# 🔥 Model Config (LightGBM)
 # =======================
 
 def get_model():
-    return CatBoostRegressor(
-        iterations=200,   # ✅ slightly safer for small data
-        depth=3,
-        learning_rate=0.03,
-        l2_leaf_reg=5,
-        loss_function="RMSE",
-        verbose=False,
-        random_seed=42
+    return LGBMRegressor(
+        n_estimators=200,
+        max_depth=4,
+        learning_rate=0.05,
+        subsample=0.8,
+        colsample_bytree=0.8,
+        random_state=42
     )
-
-
-# =======================
-# 🔹 Sanity Check
-# =======================
-
-print("\nTrain shape:", X_train.shape)
-print("Test shape:", X_test.shape)
-
 
 # =======================
 # 🔹 Mood Model
 # =======================
 
 mood_model = get_model()
-mood_model.fit(X_train, y_train_mood, sample_weight=w_train)  # ✅ added
+mood_model.fit(X_train, y_train_mood, sample_weight=w_train)
 
 pred_mood = mood_model.predict(X_test)
 
@@ -68,7 +59,7 @@ print("MAE:", mae_mood)
 # =======================
 
 prod_model = get_model()
-prod_model.fit(X_train, y_train_prod, sample_weight=w_train)  # ✅ added
+prod_model.fit(X_train, y_train_prod, sample_weight=w_train)
 
 pred_prod = prod_model.predict(X_test)
 
@@ -83,14 +74,10 @@ print("MAE:", mae_prod)
 
 
 # =======================
-# 🔹 Time Series CV
+# 🔹 Cross Validation
 # =======================
 
-cv = RepeatedKFold(   # ✅ aligned with LightGBM
-    n_splits=5,
-    n_repeats=10,
-    random_state=42
-)
+cv = RepeatedKFold(n_splits=5, n_repeats=10, random_state=42)
 
 mood_scores = cross_val_score(
     get_model(),
@@ -113,30 +100,25 @@ print("Productivity CV Average:", prod_scores.mean())
 
 
 # =======================
-# 🔹 Baseline Models
+# 🔹 Baseline (Ridge)
 # =======================
 
-ridge_mood = Ridge()
-ridge_mood.fit(X_train, y_train_mood)
+ridge = Ridge()
 
-ridge_r2_mood = r2_score(y_test_mood, ridge_mood.predict(X_test))
-print("\nBaseline Ridge R2 (Mood):", ridge_r2_mood)
+ridge.fit(X_train, y_train_mood)
+print("\nBaseline Mood R2:", r2_score(y_test_mood, ridge.predict(X_test)))
 
-
-ridge_prod = Ridge()
-ridge_prod.fit(X_train, y_train_prod)
-
-ridge_r2_prod = r2_score(y_test_prod, ridge_prod.predict(X_test))
-print("Baseline Ridge R2 (Productivity):", ridge_r2_prod)
+ridge.fit(X_train, y_train_prod)
+print("Baseline Productivity R2:", r2_score(y_test_prod, ridge.predict(X_test)))
 
 
 # =======================
 # 🔹 Feature Importance
 # =======================
 
-print("\nMood Feature Importance")
+print("\nFeature Importance")
 
-importance = mood_model.get_feature_importance()
+importance = mood_model.feature_importances_
 
 for name, score in sorted(
     zip(feature_names, importance),
@@ -153,14 +135,14 @@ for name, score in sorted(
 model_dir = os.path.join(BASE_DIR, "saved_models")
 os.makedirs(model_dir, exist_ok=True)
 
-joblib.dump(mood_model, os.path.join(model_dir, "catboost_mood.pkl"))
-joblib.dump(prod_model, os.path.join(model_dir, "catboost_productivity.pkl"))
+joblib.dump(mood_model, os.path.join(model_dir, "lightgbm_mood.pkl"))
+joblib.dump(prod_model, os.path.join(model_dir, "lightgbm_productivity.pkl"))
 
 print("\nModels saved successfully")
 
 
 # =======================
-# 🔹 Save Results (SAFE)
+# 🔹 Save Results
 # =======================
 
 results_dir = os.path.join(BASE_DIR, "results")
@@ -169,70 +151,27 @@ os.makedirs(results_dir, exist_ok=True)
 json_file = os.path.join(results_dir, "model_results.json")
 
 results_data = {
+    "model": "LightGBM",
     "timestamp": datetime.now().isoformat(),
     "mood": {
         "test_r2": float(r2_mood),
-        "cv_r2_mean": float(mood_scores.mean()),
-        "baseline_r2": float(ridge_r2_mood)
+        "cv_r2_mean": float(mood_scores.mean())
     },
     "productivity": {
         "test_r2": float(r2_prod),
-        "cv_r2_mean": float(prod_scores.mean()),
-        "baseline_r2": float(ridge_r2_prod)
+        "cv_r2_mean": float(prod_scores.mean())
     }
 }
 
-# Append instead of overwrite
 if os.path.exists(json_file):
     with open(json_file, "r") as f:
         data = json.load(f)
 else:
     data = {}
 
-data["CatBoost_Improved"] = results_data
+data["LightGBM"] = results_data
 
 with open(json_file, "w") as f:
     json.dump(data, f, indent=4)
 
 print("Results saved successfully")
-
-# =======================
-# 🔹 Save Results to TXT
-# =======================
-
-txt_file = os.path.join(results_dir, "model_results.txt")
-
-entry = f"""
-Model: CatBoost_model
-Time: {results_data['timestamp']}
-
-Mood Model
-R2: {r2_mood}
-CV Mean R2: {mood_scores.mean()}
-Baseline (Ridge): {ridge_r2_mood}
-
-Productivity Model
-R2: {r2_prod}
-CV Mean R2: {prod_scores.mean()}
-Baseline (Ridge): {ridge_r2_prod}
-
------------------------------------
-"""
-
-if os.path.exists(txt_file):
-
-    with open(txt_file, "r") as f:
-        content = f.read()
-
-    # safer replacement (no fragile split)
-    if "Model: CatBoost_model" in content:
-        content = content.split("Model: CatBoost_model")[0]
-
-    with open(txt_file, "w") as f:
-        f.write(content + entry)
-
-else:
-    with open(txt_file, "w") as f:
-        f.write(entry)
-
-print("Text results updated")

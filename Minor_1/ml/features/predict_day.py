@@ -221,19 +221,19 @@ def predict_day(row):
           f"Steps: {int(row['total_steps'])} | "
           f"Stress: {round(raw_stress,3)}")
 
-    print("\n🎯 Primary Action:")
+    print("\nPrimary Action:")
     print("-", get_primary_action(row, raw_stress))
 
     suggestions = get_activity_suggestions(row, mood, prod, raw_stress)
 
-    print("\n💡 Supporting Actions:")
+    print("\nSupporting Actions:")
     if not suggestions:
         print("- Maintain your current routine.")
     else:
         for s in suggestions[:2]:
             print("-", s)
 
-    print("\n📊 History Insight:")
+    print("\nHistory Insight:")
     history_insights = generate_history_insights(
         os.path.join(BASE_DIR, "data", "daily_data.csv")
     )
@@ -242,7 +242,7 @@ def predict_day(row):
             print("-", ins)
 
     df_full = pd.read_csv(os.path.join(BASE_DIR, "data", "daily_data.csv"))
-    print("\n🎯 Daily Goal:")
+    print("\nDaily Goal:")
     print("-", get_daily_goal(df_full, row))
 
     print("\nInsight:", generate_summary(row, mood, prod, raw_stress))
